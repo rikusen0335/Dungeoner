@@ -1,0 +1,79 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    ext {
+        junitVersion = '4.12'
+        kotlinVersion = '1.4.31'
+        paperVersion = '1.16.5-R0.1-SNAPSHOT'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+}
+
+group = 'net.rikusen'
+version = '1.0-SNAPSHOT'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc-repo'
+        url = 'https://papermc.io/repo/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven { url "https://maven.enginehub.org/repo/" }
+    maven { url 'https://repo.ryandw11.com/repository/maven-releases/' }
+}
+
+dependencies {
+    compileOnly "com.destroystokyo.paper:paper-api:$paperVersion"
+    implementation "com.ryandw11:CustomStructures:1.5.5"
+    compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.4"
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        filter ReplaceTokens, tokens: [version: version]
+    }
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+jar {
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
+task copyJar(type: Copy) {
+    from jar // jarタスクから出力されたjarファイルを自動的に読み出す
+    into "S:\\store\\minecraft\\servers\\1.16.5_tuinity_dungeoner\\plugins"
+}
+
+build.finalizedBy(copyJar)
