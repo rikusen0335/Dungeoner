@@ -19,10 +19,6 @@ enum class StructEnum(val pathList: TilePaths) {
     companion object {
         private val map = values().associateBy(StructEnum::pathList)
 
-        fun getKeyByValue(pathList: TilePaths): String {
-            var structName = map[pathList]
-            if (structName == null) return "P"
-            return structName.toString()
-        }
+        fun getKeyByValue(pathList: TilePaths): String = map[pathList]?.toString() ?: "P"
     }
 }

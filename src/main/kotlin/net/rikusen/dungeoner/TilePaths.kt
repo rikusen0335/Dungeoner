@@ -1,7 +1,5 @@
 package net.rikusen.dungeoner
 
-import java.util.*
-
 class TilePaths(val north: Boolean, val east: Boolean, val south: Boolean, val west: Boolean) {
     override fun equals(other: Any?): Boolean {
         return other is TilePaths
