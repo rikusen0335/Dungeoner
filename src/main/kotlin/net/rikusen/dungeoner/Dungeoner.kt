@@ -23,6 +23,8 @@ import org.bukkit.Location
 class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
     lateinit var structureHandler: StructureHandler
 
+    val PART_GROUP = "stone_2"
+
     override fun onEnable() {
         server.pluginManager.registerEvents(this, this)
         // TODO: If any error then try-catch them
@@ -55,7 +57,7 @@ class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
                 // Generates the labyrinth and let structures covers it
                 "generate" -> {
                     val mazeSize = 31
-                    val structureSize = 5.0
+                    val structureSize = 9.0
                     val location = sender.location.add(0.0, -3.0, 0.0)
 
                     val mazeGenerator = MazeGeneratorRevision(mazeSize, mazeSize)
@@ -64,7 +66,7 @@ class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
                     for (row in maze.indices) {
                         for (col in maze[row].indices) {
                             if (maze[row][col] == MazeGenerator.PATH) {
-                                decisionPart(maze, Cell(row, col)).spawn(location.clone().add(row * structureSize, 0.0, col * structureSize))
+                                getStructure(maze, Cell(row, col)).spawn(location.clone().add(row * structureSize, 0.0, col * structureSize))
                             }
                         }
                     }
@@ -75,63 +77,24 @@ class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
         return false
     }
 
+    // これEnumとか作って、getPartName(type: Part.Enum, rotate: Int)とかにしたほうがいいかもね～～～
+    private fun getPartName(partName: String): String {
+        return PART_GROUP + "_" + partName
+    }
+
     /*
     迷路の現在のセルから、どの方向に道が伸びているかによって使うパーツを決める
      */
-    private fun decisionPart(maze: Array<Array<Int>>, currentCell: Cell): Structure {
-        val directions = getPathDirections(maze, currentCell)
+    private fun getStructure(maze: Array<Array<Int>>, currentCell: Cell): Structure {
+        val pathList = TilePaths(
+            maze[currentCell.x][currentCell.y + 1] == MazeGeneratorRevision.PATH,
+            maze[currentCell.x + 1][currentCell.y] == MazeGeneratorRevision.PATH,
+            maze[currentCell.x][currentCell.y - 1] == MazeGeneratorRevision.PATH,
+            maze[currentCell.x - 1][currentCell.y] == MazeGeneratorRevision.PATH
+        )
 
-        when (directions.count { it }) {
-            2 -> {
-                // I字型
-                if (directions[0] && directions[2] || directions[1] && directions[3]) {
-                    return if (directions[0]) {
-                        structureHandler.getStructure("stone_I_0")
-                    } else {
-                        structureHandler.getStructure("stone_I_90")
-                    }
-                }
-
-                // L字型
-                else {
-                    return if (directions[0] && directions[1]) {
-                        structureHandler.getStructure("stone_L_270")
-                    } else if (directions[1] && directions[2]) {
-                        structureHandler.getStructure("stone_L_180")
-                    } else if (directions[2] && directions[3]) {
-                        structureHandler.getStructure("stone_L_90")
-                    } else {
-                        structureHandler.getStructure("stone_L_0")
-                    }
-                }
-            }
-            3 -> {
-                return if (directions[1] && directions[2] && directions[3]) {
-                    structureHandler.getStructure("stone_T_0")
-                } else if (directions[0] && directions[2] && directions[3]) {
-                    structureHandler.getStructure("stone_T_270")
-                } else if (directions[0] && directions[1] && directions[3]) {
-                    structureHandler.getStructure("stone_T_180")
-                } else {
-                    structureHandler.getStructure("stone_T_90")
-                }
-            }
-            4 -> return structureHandler.getStructure("stone_P")
-        }
-
-        logger.warning("I couldn't find specified stuff")
-        logger.warning("The result is ${directions.count { it }}")
-        return structureHandler.getStructure("stone_P")
-    }
-
-    private fun getPathDirections(maze: Array<Array<Int>>, currentCell: Cell): BooleanArray {
-        val boolList = BooleanArray(4)
-
-        boolList[0] = (maze[currentCell.x][currentCell.y + 1] == MazeGeneratorRevision.PATH)
-        boolList[1] = (maze[currentCell.x + 1][currentCell.y] == MazeGeneratorRevision.PATH)
-        boolList[2] = (maze[currentCell.x][currentCell.y - 1] == MazeGeneratorRevision.PATH)
-        boolList[3] = (maze[currentCell.x - 1][currentCell.y] == MazeGeneratorRevision.PATH)
-
-        return boolList
+        val structName = StructEnum.getKeyByValue(pathList)
+        logger.info("Making: $structName")
+        return structureHandler.getStructure(getPartName(structName))
     }
 }
