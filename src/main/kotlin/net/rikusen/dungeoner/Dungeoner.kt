@@ -17,84 +17,47 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
 
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat
+import net.rikusen.dungeoner.command.CommandFunctions
+import net.rikusen.dungeoner.command.CommandHandler
 import org.bukkit.Location
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.TransactionManager
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.sql.Connection
 
 
 class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
-    lateinit var structureHandler: StructureHandler
+    private lateinit var structureHandler: StructureHandler
 
-    val PART_GROUP = "stone_2"
+    private lateinit var db: Database
+    private val command = CommandHandler()
 
     override fun onEnable() {
         server.pluginManager.registerEvents(this, this)
         // TODO: If any error then try-catch them
         // TODO: Check if dependencies are installed
 
+        val basePath: Path = Paths.get(System.getProperty("user.dir")).toRealPath()
+        val sqliteFile: Path = Paths.get(basePath.toString(), "player.db")
+
+        println(sqliteFile) // Show the paths
+        db = Database.connect("jdbc:sqlite:file:$sqliteFile", "org.sqlite.JDBC")
+        TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+
         structureHandler = CustomStructuresAPI().structureHandler
+
+        command.addCommand(CommandFunctions::generateDungeon, "dungeon", "generate")
     }
 
     override fun onDisable() {
+        TransactionManager.closeAndUnregister(db) // Disconnect処理
     }
 
     override fun onCommand(sender: CommandSender, cmd: Command, label: String, params: Array<String>): Boolean {
         val cmdName = cmd.name.toLowerCase()
-
-        if (sender !is Player) return false
-
-        if (cmdName == "dungeon") {
-            if (params.isEmpty()) {
-                sender.sendMessage("HI!")
-                return true
-            }
-
-            when (params[0]) {
-                "create" -> {
-                    val result = structureHandler.getStructure("test_dungeon")
-                    result.spawn(sender.location)
-                    return true
-                }
-
-                // Generates the labyrinth and let structures covers it
-                "generate" -> {
-                    val mazeSize = 31
-                    val structureSize = 9.0
-                    val location = sender.location.add(0.0, -3.0, 0.0)
-
-                    val mazeGenerator = MazeGeneratorRevision(mazeSize, mazeSize)
-                    val maze = mazeGenerator.generate()
-
-                    for (row in maze.indices) {
-                        for (col in maze[row].indices) {
-                            if (maze[row][col] == MazeGenerator.PATH) {
-                                getStructure(maze, Cell(row, col)).spawn(location.clone().add(row * structureSize, 0.0, col * structureSize))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return false
-    }
-
-    // これEnumとか作って、getPartName(type: Part.Enum, rotate: Int)とかにしたほうがいいかもね～～～
-    private fun getPartName(partName: String): String {
-        return PART_GROUP + "_" + partName
-    }
-
-    /*
-    迷路の現在のセルから、どの方向に道が伸びているかによって使うパーツを決める
-     */
-    private fun getStructure(maze: Array<Array<Int>>, currentCell: Cell): Structure {
-        val pathList = TilePaths(
-            maze[currentCell.x][currentCell.y + 1] == MazeGeneratorRevision.PATH,
-            maze[currentCell.x + 1][currentCell.y] == MazeGeneratorRevision.PATH,
-            maze[currentCell.x][currentCell.y - 1] == MazeGeneratorRevision.PATH,
-            maze[currentCell.x - 1][currentCell.y] == MazeGeneratorRevision.PATH
-        )
-
-        val structName = StructEnum.getKeyByValue(pathList)
-        logger.info("Making: $structName")
-        return structureHandler.getStructure(getPartName(structName))
+        val result = command.exec(sender, cmdName, *params)
+        if (result.message != "") sender.sendMessage(result.message)
+        return result.success
     }
 }

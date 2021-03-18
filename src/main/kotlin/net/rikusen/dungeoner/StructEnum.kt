@@ -14,6 +14,12 @@ enum class StructEnum(val pathList: TilePaths) {
     T_180(TilePaths(true, true, false, true)),
     T_270(TilePaths(true, false, true, true)),
 
+    U_0(TilePaths(true, false, false, false)),
+    U_90(TilePaths(false, false, false, true)),
+    U_180(TilePaths(false, false, true, false)),
+    U_270(TilePaths(false, true, false, false)),
+
+
     P(TilePaths(true, true, true, true));
 
     companion object {
