@@ -3,6 +3,7 @@ package net.rikusen.dungeoner.command
 import com.ryandw11.structure.api.CustomStructuresAPI
 import com.ryandw11.structure.structure.Structure
 import com.ryandw11.structure.structure.StructureHandler
+import item.ItemManager
 import net.kyori.adventure.text.Component
 import net.rikusen.dungeoner.CustomPlayer
 import net.rikusen.dungeoner.maze_generator.*
@@ -92,6 +93,19 @@ object CommandFunctions {
         player.player.sendMessage("Intelligence: ${player.intelligence}")
 
         return CommandResult(true)
+    }
+
+    /*
+    TODO
+    そのうち、アイテムリストを出して、そこから欲しいアイテムをクリックするだけで取得できるようにする
+    Display the all item list, and click it then get the specified item in the future
+     */
+    fun getItem(player: CustomPlayer, name: String): CommandResult {
+        val item = ItemManager.get(name)
+        player.player.inventory.addItem(item)
+
+        // TODO TextComponentImplからcontentを取得する方法を探す
+        return CommandResult(true, "${ChatColor.GREEN}${item.itemMeta.displayName()}${ChatColor.WHITE}を与えました")
     }
 
     /*

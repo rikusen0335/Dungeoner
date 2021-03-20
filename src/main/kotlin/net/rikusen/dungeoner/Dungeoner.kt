@@ -20,6 +20,7 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat
 import net.kyori.adventure.text.Component
 import net.rikusen.dungeoner.command.CommandFunctions
 import net.rikusen.dungeoner.command.CommandHandler
+import net.rikusen.dungeoner.mana.ManaManager
 import net.rikusen.dungeoner.stamina.StaminaManager
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -41,6 +42,7 @@ class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
         server.pluginManager.registerEvents(EventListener, this)
         server.pluginManager.registerEvents(PlayerStatusChangeListener(this), this)
         server.pluginManager.registerEvents(StaminaManager(this), this)
+        server.pluginManager.registerEvents(ManaManager(this), this)
         // TODO: If any error then try-catch them
         // TODO: Check if dependencies are installed
 
@@ -52,6 +54,7 @@ class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
         command.addCommand(CommandFunctions::setHealth, "rpg", "health", "set", Int)
         command.addCommand(CommandFunctions::setMaxHealth, "rpg", "maxhealth", "set", Int)
         command.addCommand(CommandFunctions::showStatus, "rpg", "status")
+        command.addCommand(CommandFunctions::getItem, "item", "get", String)
     }
 
     override fun onDisable() {

@@ -10,4 +10,7 @@ commands:
     description: The command you used
 
   rpg:
-    description: For an RPG system.
+    description: For an RPG system
+
+  item:
+    description: For an Item system
