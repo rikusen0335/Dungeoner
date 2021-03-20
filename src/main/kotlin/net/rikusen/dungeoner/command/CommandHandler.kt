@@ -19,11 +19,11 @@ class CommandHandler {
     }
 
     fun exec(sender: CommandSender, vararg cmd: String): CommandResult {
-        if (sender !is Player) return CommandResult(false, "${ChatColor.RED}The command only accepts a player.")
-//        val player = CustomPlayer.getPlayer(sender)
+        if (sender !is Player) return CommandResult(false, "${ChatColor.RED}このコマンドはプレイヤーのみ使用できます。") // Says: "The command only accepts a player."
+        val player = CustomPlayer.getPlayer(sender)
         return when (val command = findCommand(*cmd)) {
-            null -> CommandResult(false, "Unknown command.")
-            else -> command.first.call(sender, *collectArgs(command.second, *cmd))
+            null -> CommandResult(false, "存在しないコマンドです。") // Says: "Unknown command."
+            else -> command.first.call(player, *collectArgs(command.second, *cmd))
         }
     }
 
@@ -47,6 +47,11 @@ class CommandHandler {
             }.contains(false)
         }
     }
+
+//    // TODO TabCompletions
+//    private fun findCommandCompletions(arg: String): Array<String>? {
+//
+//    }
 
     private fun canParse(value: String, asType: Any): Boolean {
         return when (asType) {

@@ -1,4 +1,4 @@
-package net.rikusen.dungeoner
+package net.rikusen.dungeoner.maze_generator
 
 enum class Direction(direction: Int) {
     Up(0),

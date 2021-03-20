@@ -1,6 +1,6 @@
 package net.rikusen.dungeoner
 
-import org.bukkit.attribute.Attribute
+import net.rikusen.dungeoner.command.CommandResult
 import org.bukkit.attribute.AttributeInstance
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
@@ -8,11 +8,12 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.ceil
 
-public class CustomPlayer(player: Player, level: Int) {
+class CustomPlayer(player: Player, level: Int) {
 
     object Users : Table() {
-        val uuid = uuid("uuid").primaryKey()
+        val uuid = uuid("uuid")
         val name = text("name")
         val level = integer("level")
         val experience = integer("experience")
@@ -20,9 +21,13 @@ public class CustomPlayer(player: Player, level: Int) {
         val health = double("health")
         val maxMana = double("maxMana")
         val mana = double("mana")
+        val maxStamina = double("maxStamina")
+        val stamina = double("stamina")
         val strength = double("strength")
         val intelligence = double("intelligence")
         val agility = double("agility")
+
+        override val primaryKey = PrimaryKey(uuid, name = "PK_CustomPlayer_UUID")
     }
 
     companion object {
@@ -41,7 +46,7 @@ public class CustomPlayer(player: Player, level: Int) {
             transaction { SchemaUtils.create(Users) }
 
             // Initialize if there is no data
-            if (!this.checkUserExists(player.uniqueId)) {
+            if (!checkUserExists(player.uniqueId)) {
                 transaction {
                     Users.insert {
                         it[uuid] = player.uniqueId
@@ -52,6 +57,7 @@ public class CustomPlayer(player: Player, level: Int) {
                         it[health] = 20.0
                         it[maxMana] = 10.0
                         it[mana] = 10.0
+                        it[maxStamina] = 20.0
                         it[strength] = 1.0
                         it[intelligence] = 1.0
                         it[agility] = 1.0
@@ -73,8 +79,7 @@ public class CustomPlayer(player: Player, level: Int) {
                 }
             }
 
-            val customPlayer = CustomPlayer(player, currentPlayerLevel) // DBから取ってきたレベルを入れる
-            return customPlayer
+            return CustomPlayer(player, currentPlayerLevel) // DBから取ってきたレベルを入れる
         }
 
         private fun checkUserExists(uuid: UUID): Boolean {
@@ -84,8 +89,6 @@ public class CustomPlayer(player: Player, level: Int) {
 
     /* ----- Getter / Setter ----- */
     var player: Player = player
-        get() = field
-        set(player: Player) { field = player }
     var name: String
         get() = getData(Users.name)
         set(value) = setData(Users.name, value)
@@ -109,6 +112,21 @@ public class CustomPlayer(player: Player, level: Int) {
     var mana: Double
         get() = getData(Users.mana)
         set(value) = setData(Users.mana, value)
+    var maxStamina: Double
+        get() = getData(Users.maxStamina)
+        set(value) = setData(Users.maxStamina, value)
+    var stamina: Double = maxStamina
+        set(value) {
+            if (value >= maxStamina) {
+                field = maxStamina
+            } else if (value < 0) {
+                field = 0.0
+            } else {
+                field = value
+            }
+            player.foodLevel = calculateFoodLevel()
+        }
+    var staminaDelay: Double = 1.0
     var strength: Double
         get() = getData(Users.strength)
         set(value) = setData(Users.strength, value)
@@ -119,16 +137,9 @@ public class CustomPlayer(player: Player, level: Int) {
         get() = getData(Users.agility)
         set(value) = setData(Users.agility, value)
     var cooldown: Int = 1500
-        get() = field
-        set(value) { field = value }
     val cooldownTime: Int = 1500
-        get() = field
     var isSneaking: Boolean = false
-        get() = field
-        set(value) { field = value }
     var moveVector: Vector = Vector(0.0, 0.0, 0.0)
-        get() = field
-        set(value) { field = value }
     /* ----- Getter / Setter END ----- */
 
 
@@ -151,6 +162,36 @@ public class CustomPlayer(player: Player, level: Int) {
     }
     /* ----- private Getter / Setter functions END ----- */
 
+    fun updateClientHealth() {player.health = health / maxHealth * 20}
+    fun updateHealth(damage: Double): Boolean {
+        if (damage < 0) throw IllegalArgumentException("0以上の値を指定してください。") // Says: "Specify number of 0 or more."
+
+        health -= damage
+        updateClientHealth()
+        return true
+    }
+
+    fun regenerateStamina() {
+        if (staminaDelay > 0) return
+        stamina += 1.3 // This will be changed
+    }
+
+    fun consumeStamina() {
+        staminaDelay = 1.0
+        stamina -= 0.5 // This will be changed
+    }
+
+    fun consumeJumpStamina() {
+        staminaDelay = 1.0
+        stamina -= 1.0 // This will be changed
+    }
+
+    fun calculateFoodLevel(): Int {
+//        player.sendMessage(stamina.toString())
+//        player.sendMessage((stamina / maxStamina).toString())
+//        player.sendMessage(ceil(stamina / maxStamina * 20).toString())
+        return ceil(stamina / maxStamina * 14).toInt() + 6
+    }
 
     private fun calcRequiredExperience(): Int {
         return getData(Users.level) * 10

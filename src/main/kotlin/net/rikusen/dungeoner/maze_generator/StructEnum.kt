@@ -1,4 +1,4 @@
-package net.rikusen.dungeoner
+package net.rikusen.dungeoner.maze_generator
 
 enum class StructEnum(val pathList: TilePaths) {
     I_0(TilePaths(true, false, true, false)),

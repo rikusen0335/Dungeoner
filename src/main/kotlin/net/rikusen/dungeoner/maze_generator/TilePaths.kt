@@ -1,4 +1,4 @@
-package net.rikusen.dungeoner
+package net.rikusen.dungeoner.maze_generator
 
 class TilePaths(val north: Boolean, val east: Boolean, val south: Boolean, val west: Boolean) {
     override fun equals(other: Any?): Boolean {

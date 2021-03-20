@@ -90,7 +90,7 @@ jar {
 
 task copyJar(type: Copy) {
     from jar // jarタスクから出力されたjarファイルを自動的に読み出す
-    into "S:\\store\\minecraft\\servers\\1.16.5_tuinity_dungeoner\\plugins"
+    into "S:\\store\\minecraft\\servers\\1.16.x_tuinity_dungeoner\\plugins"
 }
 
 build.finalizedBy(copyJar)

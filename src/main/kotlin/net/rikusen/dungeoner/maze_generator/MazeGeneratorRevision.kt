@@ -1,4 +1,4 @@
-package net.rikusen.dungeoner
+package net.rikusen.dungeoner.maze_generator
 
 import java.util.*
 import kotlin.collections.ArrayList
