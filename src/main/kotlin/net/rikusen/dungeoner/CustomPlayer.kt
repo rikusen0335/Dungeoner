@@ -1,6 +1,8 @@
 package net.rikusen.dungeoner
 
 import net.rikusen.dungeoner.command.CommandResult
+import net.rikusen.dungeoner.mana.ManaConsumeEvent
+import org.bukkit.ChatColor
 import org.bukkit.attribute.AttributeInstance
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
@@ -22,7 +24,6 @@ class CustomPlayer(player: Player, level: Int) {
         val maxMana = double("maxMana")
         val mana = double("mana")
         val maxStamina = double("maxStamina")
-        val stamina = double("stamina")
         val strength = double("strength")
         val intelligence = double("intelligence")
         val agility = double("agility")
@@ -34,6 +35,7 @@ class CustomPlayer(player: Player, level: Int) {
         private var registry: ArrayList<CustomPlayer> = ArrayList()
 
         fun registerPlayer(customPlayer: CustomPlayer) {
+            customPlayer.player.sendMessage("${ChatColor.GREEN}プレイヤーを正常に登録しました。")
             registry.add(customPlayer)
         }
 
@@ -111,18 +113,30 @@ class CustomPlayer(player: Player, level: Int) {
         set(value) = setData(Users.maxMana, value)
     var mana: Double
         get() = getData(Users.mana)
-        set(value) = setData(Users.mana, value)
+        set(value) {
+            /* TODO
+             これDBに何回もアクセスしちゃうからあんま良くない
+             This is not good because we everytime access to DB
+             */
+            if (mana == value) return
+
+            val validatedValue = when {
+                value >= maxMana -> maxMana
+                value < 0 -> 0.0
+                else -> value
+            }
+            setData(Users.mana, validatedValue)
+            updateClientMana()
+        }
     var maxStamina: Double
         get() = getData(Users.maxStamina)
         set(value) = setData(Users.maxStamina, value)
     var stamina: Double = maxStamina
         set(value) {
-            if (value >= maxStamina) {
-                field = maxStamina
-            } else if (value < 0) {
-                field = 0.0
-            } else {
-                field = value
+            field = when {
+                value >= maxStamina -> maxStamina
+                value < 0 -> 0.0
+                else -> value
             }
             player.foodLevel = calculateFoodLevel()
         }
@@ -162,7 +176,8 @@ class CustomPlayer(player: Player, level: Int) {
     }
     /* ----- private Getter / Setter functions END ----- */
 
-    fun updateClientHealth() {player.health = health / maxHealth * 20}
+    fun updateClientHealth() { player.health = health / maxHealth * 20 }
+
     fun updateHealth(damage: Double): Boolean {
         if (damage < 0) throw IllegalArgumentException("0以上の値を指定してください。") // Says: "Specify number of 0 or more."
 
@@ -195,6 +210,22 @@ class CustomPlayer(player: Player, level: Int) {
 
     private fun calcRequiredExperience(): Int {
         return getData(Users.level) * 10
+    }
+
+    fun regenerateMana() {
+        mana += 0.2
+    }
+
+    fun consumeMana(amount: Double): Boolean {
+        if (mana - amount <= 0) return false
+
+        mana -= amount
+        ManaConsumeEvent(this, amount)
+        return true
+    }
+
+    fun updateClientMana() {
+        player.exp = (mana / maxMana).toFloat()
     }
 
     fun calculateExperience(currentExp: Int, earnedExperience: Int): Int {

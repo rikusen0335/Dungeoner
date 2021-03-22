@@ -1,29 +1,21 @@
 package net.rikusen.dungeoner
 
 import com.ryandw11.structure.api.CustomStructuresAPI
-import com.ryandw11.structure.structure.Structure
 import com.ryandw11.structure.structure.StructureHandler
-import com.sk89q.worldedit.extent.clipboard.Clipboard
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
-import java.io.FileInputStream
 
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader
-
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
-
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat
-import net.kyori.adventure.text.Component
 import net.rikusen.dungeoner.command.CommandFunctions
 import net.rikusen.dungeoner.command.CommandHandler
+import net.rikusen.dungeoner.config.Configuration
 import net.rikusen.dungeoner.mana.ManaManager
+import net.rikusen.dungeoner.skill.SkillTriggerListener
 import net.rikusen.dungeoner.stamina.StaminaManager
-import org.bukkit.Bukkit
-import org.bukkit.Location
+import org.bukkit.Material
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.nio.file.Path
@@ -32,10 +24,9 @@ import java.sql.Connection
 
 
 class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
-    private lateinit var structureHandler: StructureHandler
-
     private lateinit var db: Database
     private val command = CommandHandler()
+    lateinit var customStructuresAPI: CustomStructuresAPI
 
     override fun onEnable() {
         server.pluginManager.registerEvents(this, this)
@@ -43,18 +34,27 @@ class Dungeoner : JavaPlugin(), Listener, CommandExecutor {
         server.pluginManager.registerEvents(PlayerStatusChangeListener(this), this)
         server.pluginManager.registerEvents(StaminaManager(this), this)
         server.pluginManager.registerEvents(ManaManager(this), this)
+        server.pluginManager.registerEvents(SkillTriggerListener, this)
         // TODO: If any error then try-catch them
         // TODO: Check if dependencies are installed
 
-        connectDatabase()
+        customStructuresAPI = CustomStructuresAPI()
 
-        structureHandler = CustomStructuresAPI().structureHandler
+        val itemConfig = Configuration(this, "item").open()
+        itemConfig.write("Test.Material", Material.IRON_SWORD.toString())
+        itemConfig.write("Test.Display", "Test Iron Sword")
+        itemConfig.write("Test.Lore", listOf("This is line 1", "This is line 2"))
+        itemConfig.save()
+
+        connectDatabase()
 
         command.addCommand(CommandFunctions::generateDungeon, "dungeon", "generate")
         command.addCommand(CommandFunctions::setHealth, "rpg", "health", "set", Int)
         command.addCommand(CommandFunctions::setMaxHealth, "rpg", "maxhealth", "set", Int)
         command.addCommand(CommandFunctions::showStatus, "rpg", "status")
         command.addCommand(CommandFunctions::getItem, "item", "get", String)
+        command.addCommand(CommandFunctions::getItemAmount, "item", "get", String, Int)
+        command.addCommand(CommandFunctions::testStructure, "dungeon", "test")
     }
 
     override fun onDisable() {

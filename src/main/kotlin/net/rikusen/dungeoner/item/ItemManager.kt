@@ -1,13 +1,19 @@
-package item
+package net.rikusen.dungeoner.item
 
 import net.kyori.adventure.text.Component
+import org.bukkit.entity.Item
 import org.bukkit.inventory.ItemStack
+import org.yaml.snakeyaml.Yaml
+import org.bukkit.configuration.InvalidConfigurationException
 
-/*
-TODO
-というか、アイテム系の管理はMythicMobsでやったほうがいいのでは？
- */
+import java.io.IOException
+
+import org.bukkit.configuration.file.YamlConfiguration
+import java.io.File
+
+
 object ItemManager {
+
     fun get(itemName: String): ItemStack {
         val itemEnum = ItemEnum.valueOf(itemName)
         val item = ItemStack(itemEnum.material)
@@ -23,7 +29,7 @@ object ItemManager {
         アイテムに説明を追加する
         Add lore to item
          */
-        val loreList: ArrayList<Component> = arrayListOf(itemEnum.lore)
+        val loreList: ArrayList<Component> = itemEnum.lore
         newItemMeta.lore(loreList)
 
         item.itemMeta = newItemMeta

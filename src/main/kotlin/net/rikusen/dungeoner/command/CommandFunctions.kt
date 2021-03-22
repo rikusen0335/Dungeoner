@@ -3,9 +3,10 @@ package net.rikusen.dungeoner.command
 import com.ryandw11.structure.api.CustomStructuresAPI
 import com.ryandw11.structure.structure.Structure
 import com.ryandw11.structure.structure.StructureHandler
-import item.ItemManager
+import net.rikusen.dungeoner.item.ItemManager
 import net.kyori.adventure.text.Component
 import net.rikusen.dungeoner.CustomPlayer
+import net.rikusen.dungeoner.Dungeoner
 import net.rikusen.dungeoner.maze_generator.*
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
@@ -13,7 +14,6 @@ import org.bukkit.entity.Player
 import kotlin.math.roundToInt
 
 object CommandFunctions {
-    private var structureHandler: StructureHandler = CustomStructuresAPI().structureHandler
     private val PART_GROUP = "stone_2"
 
     fun generateDungeon(player: CustomPlayer): CommandResult {
@@ -78,6 +78,14 @@ object CommandFunctions {
         return CommandResult(true, "Your Strength is now ${player.strength}")
     }
 
+    fun testStructure(player: CustomPlayer): CommandResult {
+        val customStructuresAPI = CustomStructuresAPI()
+        val hoge = customStructuresAPI.structureHandler.getStructure("stone_2_T_0").baseRotation
+        player.player.sendMessage(hoge.toString())
+
+        return CommandResult(true)
+    }
+
     fun showStatus(player: CustomPlayer): CommandResult {
         val maxHealth = player.maxHealth
         val currentHealth = player.health.roundToInt()
@@ -105,7 +113,16 @@ object CommandFunctions {
         player.player.inventory.addItem(item)
 
         // TODO TextComponentImplからcontentを取得する方法を探す
-        return CommandResult(true, "${ChatColor.GREEN}${item.itemMeta.displayName()}${ChatColor.WHITE}を与えました")
+        return CommandResult(true, "${ChatColor.GREEN}${item.itemMeta.displayName()}${ChatColor.WHITE}を1個与えました")
+    }
+
+    fun getItemAmount(player: CustomPlayer, name: String, amount: Int): CommandResult {
+        val item = ItemManager.get(name)
+        item.amount = amount
+        player.player.inventory.addItem(item)
+
+        // TODO TextComponentImplからcontentを取得する方法を探す
+        return CommandResult(true, "${ChatColor.GREEN}${item.itemMeta.displayName()}${ChatColor.WHITE}を${amount}個与えました")
     }
 
     /*
@@ -129,6 +146,6 @@ object CommandFunctions {
 
         val structName = StructEnum.getKeyByValue(pathList)
         Bukkit.getLogger().info("Making: $structName")
-        return structureHandler.getStructure(getPartName(structName))
+        return Dungeoner().customStructuresAPI.structureHandler.getStructure(getPartName(structName))
     }
 }
