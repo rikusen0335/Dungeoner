@@ -1,10 +1,9 @@
 name: Dungeoner
 version: @version@
 main: net.rikusen.dungeoner.Dungeoner
-api-version: 1.16
+api-version: 1.17
 authors: [ rikusen0335 ]
-#depend:
-#  - CustomStructures
+depend: [CustomStructures]
 commands:
   dungeon:
     description: The command you used

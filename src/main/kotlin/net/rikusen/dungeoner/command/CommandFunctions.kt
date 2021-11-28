@@ -41,7 +41,7 @@ object CommandFunctions {
     fun setMaxHealth(player: CustomPlayer, value: Int): CommandResult {
         if (value < 0) return CommandResult(false, "Invalid health: $value")
         player.maxHealth = value.toDouble()
-        player.updateClientHealth()
+        player.updateClientHealthDisplay()
         return CommandResult(true, "Your max health is now ${player.maxHealth}")
     }
 
@@ -56,7 +56,7 @@ object CommandFunctions {
             return CommandResult(true)
         }
         player.health = value.toDouble()
-        player.updateClientHealth()
+        player.updateClientHealthDisplay()
         return CommandResult(true, "Your health is now ${player.health}")
     }
 

@@ -176,24 +176,25 @@ class CustomPlayer(player: Player, level: Int) {
     }
     /* ----- private Getter / Setter functions END ----- */
 
-    fun updateClientHealth() { player.health = health / maxHealth * 20 }
+    // クライアントでの表示はハート10個なので、それに合わせる
+    fun updateClientHealthDisplay() { player.health = health / maxHealth * 20 }
 
     fun updateHealth(damage: Double): Boolean {
         if (damage < 0) throw IllegalArgumentException("0以上の値を指定してください。") // Says: "Specify number of 0 or more."
 
         health -= damage
-        updateClientHealth()
+        updateClientHealthDisplay()
         return true
     }
 
     fun regenerateStamina() {
         if (staminaDelay > 0) return
-        stamina += 1.3 // This will be changed
+        stamina += 1.3 // This can be changed
     }
 
     fun consumeStamina() {
         staminaDelay = 1.0
-        stamina -= 0.5 // This will be changed
+        stamina -= 0.5 // This can be changed
     }
 
     fun consumeJumpStamina() {

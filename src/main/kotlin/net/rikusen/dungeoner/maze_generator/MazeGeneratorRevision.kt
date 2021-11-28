@@ -7,10 +7,10 @@ import kotlin.random.Random
 // https://algoful.com/Archive/Algorithm/MazeExtend
 
 /* 壁伸ばし法 */
-class MazeGeneratorRevision(width: Int, height: Int) {
+class MazeGeneratorRevision(private val width: Int, private val height: Int) {
     companion object {
-        val PATH = 0
-        val WALL = 1
+        const val PATH = 0
+        const val WALL = 1
 
         fun debugPrint(maze: Array<Array<Int>>) {
             println("Width: ${maze.size}")
@@ -25,10 +25,7 @@ class MazeGeneratorRevision(width: Int, height: Int) {
         }
     }
 
-    val width = width
-    val height = height
-
-    // 迷路情報を初期化
+    // 迷路情報を初期化（全部壁にしてる）
     private var maze = Array(width) { Array(height) { PATH } }
     // 現在拡張中の壁情報を保持
     private val currentWallCells = Stack<Cell>()

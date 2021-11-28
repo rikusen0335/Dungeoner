@@ -56,7 +56,7 @@ object EventListener : Listener {
         val cPlayer: CustomPlayer = CustomPlayer.getPlayer(player)
         player.sendMessage("Health: ${cPlayer.maxHealth} / ${cPlayer.health}")
         player.sendMessage("Exp: ${cPlayer.experience}")
-        cPlayer.updateClientHealth()
+        cPlayer.updateClientHealthDisplay()
         player.level = cPlayer.level
     }
 }
