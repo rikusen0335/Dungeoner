@@ -39,9 +39,9 @@ data class Vector2Int(val x: Int, val y: Int): Comparable<Vector2Int> {
         }
     }
 
-    override fun hashCode(): Int {
-        return (x * 397).toDouble().pow(y).toInt()
-    }
+//    override fun hashCode(): Int {
+//        return (x * 397).toDouble().pow(y).toInt()
+//    }
 
     /**
      * Rotate the point around the center.
@@ -72,8 +72,8 @@ data class Vector2Int(val x: Int, val y: Int): Comparable<Vector2Int> {
             TransformationGrid2D.Rotate270 -> rotateAroundCenter(270)
             TransformationGrid2D.MirrorX -> Vector2Int(x, -y)
             TransformationGrid2D.MirrorY -> Vector2Int(-x, y)
-            TransformationGrid2D.Diagona113 -> Vector2Int(y, x)
-            TransformationGrid2D.Diagona124 -> Vector2Int(-y, -x)
+            TransformationGrid2D.Diagonal13 -> Vector2Int(y, x)
+            TransformationGrid2D.Diagonal24 -> Vector2Int(-y, -x)
             else -> throw IllegalArgumentException("Given polygon transformation is not implemented")
         }
     }
@@ -134,6 +134,10 @@ data class Vector2Int(val x: Int, val y: Int): Comparable<Vector2Int> {
         return Vector2Int(x + other.x, y + other.y)
     }
 
+    operator fun plus(line: OrthogonalLineGrid2D): OrthogonalLineGrid2D {
+        return this + line
+    }
+
     operator fun minus(other: Vector2Int): Vector2Int {
         return Vector2Int(x - other.x, y - other.y)
     }
@@ -142,22 +146,8 @@ data class Vector2Int(val x: Int, val y: Int): Comparable<Vector2Int> {
         return Vector2Int(x * other.x, y * other.y)
     }
 
-    // I'm really not sure if this correct way to compare
-    override operator fun compareTo(other: Vector2Int): Int = when {
-        x != other.x -> x.compareTo(other.x)
-        y != other.y -> y.compareTo(other.y)
-        else -> 0
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Vector2Int
-
-        if (x != other.x) return false
-        if (y != other.y) return false
-
-        return true
+    override operator fun compareTo(other: Vector2Int): Int {
+        if (this == other) return 0
+        return (this.x shl 1 + this.y shl 1) - (other.x shl 1 + other.y shl 1)
     }
 }
